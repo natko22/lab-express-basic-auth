@@ -3,13 +3,10 @@ const User = require("../models/User.model");
 const router = require("express").Router();
 const saltRounds = 12;
 
+// signup routes
 router.get("/signup", (req, res, next) => {
   res.render("auth/signup");
 });
-
-// router.get("/profile", (req, res) => {
-//   res.render("auth/profile");
-// });
 
 router.post("/signup", async (req, res, next) => {
   // const{email,password} = req.body;
@@ -26,5 +23,33 @@ router.post("/signup", async (req, res, next) => {
 
   res.redirect("/profile");
 });
+// login routes
+router.get("/login", (req, res) => {
+  res.render("auth/login");
+});
 
+router.post("/login", async (req, res, next) => {
+  try {
+    const user = await User.findOne({ username: req.body.username });
+    if (!user) {
+      return res.render("auth/login", { error: "User not existent" });
+    }
+
+    const passwordsMatch = await bcryptjs.compare(
+      req.body.password,
+      user.password
+    );
+
+    if (!passwordsMatch) {
+      return res.render("auth/login", {
+        error: "Sorry the password is incorrect!",
+      });
+    }
+
+    console.log(req.body);
+    res.redirect("/profile");
+  } catch (err) {
+    next(err);
+  }
+});
 module.exports = router;
